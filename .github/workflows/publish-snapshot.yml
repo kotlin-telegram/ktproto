@@ -1,0 +1,93 @@
+name: Library Snapshot Deploy
+
+on:
+  push:
+#    // for now only master will be deployed
+#    branches-ignore: [ "master" ]
+  workflow_dispatch:
+
+env:
+  GITHUB_USERNAME: ${{ github.actor }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+  ORG_GRADLE_PROJECT_snapshot: true
+  ORG_GRADLE_PROJECT_commit: ${{ github.sha }}
+  ORG_GRADLE_PROJECT_attempt: ${{ github.run_attempt }}
+
+jobs:
+
+  deploy-multiplatform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Gradle Cache Setup
+        uses: gradle/gradle-build-action@v2
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/dev' }}
+      - name: Gradle Sync
+        run: ./gradlew
+      - name: Add Sdk Version to Env
+        run: |
+          snapshot_version=$(./gradlew printVersion -q)
+          echo "snapshot_version=$snapshot_version" >> $GITHUB_ENV
+      - name: Publish ${{ env.snapshot_version }}
+        run: ./gradlew publishKotlinMultiplatformPublicationToKtprotoRepository
+
+  deploy-jvm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Gradle Cache Setup
+        uses: gradle/gradle-build-action@v2
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/dev' }}
+      - name: Gradle Sync
+        run: ./gradlew
+      - name: Add Sdk Version to Env
+        run: |
+          snapshot_version=$(./gradlew printVersion -q)
+          echo "snapshot_version=$snapshot_version" >> $GITHUB_ENV
+      - name: Publish ${{ env.snapshot_version }}
+        run: ./gradlew publishJvmPublicationToKtprotoRepository
+
+  deploy-js:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Gradle Cache Setup
+        uses: gradle/gradle-build-action@v2
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/dev' }}
+      - name: Gradle Sync
+        run: ./gradlew
+      - name: Add Sdk Version to Env
+        run: |
+          snapshot_version=$(./gradlew printVersion -q)
+          echo "snapshot_version=$snapshot_version" >> $GITHUB_ENV
+      - name: Publish ${{ env.snapshot_version }}
+        run: ./gradlew publishJsPublicationToKtprotoRepository
+
+  deploy-konan:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Gradle Cache Setup
+        uses: gradle/gradle-build-action@v2
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/dev' }}
+      - name: Konan Cache Setup
+        uses: actions/cache@v3
+        with:
+          path: ~/.konan
+          key: konan-cache
+      - name: Gradle Sync
+        run: ./gradlew
+      - name: Add Sdk Version to Env
+        run: |
+          snapshot_version=$(./gradlew printVersion -q)
+          echo "snapshot_version=$snapshot_version" >> $GITHUB_ENV
+      - name: Publish ${{ env.snapshot_version }}
+        run: |
+          ./gradlew publishIosX64PublicationToKtprotoRepository \
+                    publishIosSimulatorArm64PublicationToKtprotoRepository \
+                    publishIosArm64PublicationToKtprotoRepository
