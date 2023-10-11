@@ -1,16 +1,16 @@
 package ktproto.client.plain
 
 import kotl.core.decoder.decodeFromByteArray
+import kotl.core.descriptor.TLExpressionDescriptor
 import kotl.core.element.TLExpression
+import kotl.core.element.TLFunction
 import kotl.core.encoder.encodeToByteArray
-import kotl.time.Clock
+import ktproto.time.Clock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import ktproto.client.MTProtoClient
-import ktproto.client.MTProtoRequest
 import ktproto.io.annotation.OngoingConnection
 import ktproto.session.MTProtoSession
 import ktproto.session.SessionConnector
@@ -61,12 +61,14 @@ private class PlainMTProtoClient(
 
     override val updates: Flow<TLExpression> = flow { awaitCancellation() }
 
+    @OptIn(ExperimentalStdlibApi::class)
     override suspend fun execute(
-        request: MTProtoRequest
+        function: TLFunction,
+        responseDescriptor: TLExpressionDescriptor
     ): TLExpression {
-        val bytes = request.function.encodeToByteArray()
+        val bytes = function.encodeToByteArray()
         val message = MTProtoSession.Message(bytes)
         val response = session.sendRequest(message) { it }
-        return request.responseDescriptor.decodeFromByteArray(response.bytes)
+        return responseDescriptor.decodeFromByteArray(response.bytes)
     }
 }

@@ -12,6 +12,7 @@ dependencies {
     commonMainImplementation(projects.types)
     commonMainImplementation(libs.koTL.serialization)
     commonMainApi(libs.ktor.client)
+    commonMainApi(libs.kotlinxSerialization)
     jvmMainImplementation(libs.ktor.client.cio)
     jvmMainImplementation(libs.ktor.client.logging)
 }

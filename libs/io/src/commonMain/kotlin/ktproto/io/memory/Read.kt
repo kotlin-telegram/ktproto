@@ -42,6 +42,15 @@ public inline fun MemoryArena.readBytes(
     return readMemory(n) { memory -> block(memory.toByteArray()) }
 }
 
+public inline fun MemoryArena.readByte(
+    block: (Byte) -> Unit
+): MemoryArena {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+    return readBytes(n = 1) { bytes -> block(bytes[0]) }
+}
+
 public fun MemoryArena.scanInt(): Int {
     val result: Int
     readInt { result = it }

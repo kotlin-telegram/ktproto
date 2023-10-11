@@ -6,6 +6,7 @@ plugins {
 version = libs.versions.ktprotoVersion.get()
 
 dependencies {
+    commonMainImplementation(projects.libs.crypto)
     commonMainImplementation(libs.koTL.serialization)
     commonMainImplementation(libs.kotlinxSerialization)
     commonMainApi(projects.session)
