@@ -2,16 +2,10 @@ package ktproto.client.ktor
 
 import io.ktor.client.*
 import io.ktor.client.plugins.logging.*
-import kotl.serialization.TL
-import kotl.serialization.bare.bare
-import kotl.serialization.bytes.Bytes
-import kotlinx.serialization.encodeToByteArray
 import ktproto.client.authorization.createAuthorizationKey
-import ktproto.client.ktor.socket.openKtorSocketTransport
+import ktproto.client.ktor.socket.ktorSocketTransport
 import ktproto.client.plain.plainMTProtoClient
 import ktproto.client.rsa.RsaPublicKey
-import ktproto.client.rsa.TLRsaPublicKey
-import ktproto.client.rsa.fingerprint
 import ktproto.io.annotation.OngoingConnection
 import ktproto.stdlib.scope.weakCoroutineScope
 
@@ -57,15 +51,16 @@ private val keys = listOf(productionKey, testKey)
 
 @OngoingConnection
 private suspend fun main(): Unit = weakCoroutineScope {
-    val transport = openKtorSocketTransport(
-        hostname = "149.154.167.51",
-        port = 443
-    )
     val client = plainMTProtoClient(
-        transport = transport,
-        scope = this
+        scope = this,
+        transport = ktorSocketTransport(
+            hostname = "149.154.167.51",
+            port = 443
+        )
     )
+    println("Hostname: 149.154.167.51")
+    println("Port: 443")
     repeat(10) {
-        createAuthorizationKey(client, keys)
+        createAuthorizationKey(client, 2, keys)
     }
 }

@@ -11,22 +11,22 @@ import kotl.serialization.bare.bare
 import ktproto.crypto.rsa.RsaPublicKey as InternalRsaPublicKey
 
 public data class RsaPublicKey(
-    public val n: ByteArray,
-    public val e: ByteArray
+    public val modulus: ByteArray,
+    public val publicExponent: ByteArray
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is RsaPublicKey) return false
 
-        if (!n.contentEquals(other.n)) return false
-        if (!e.contentEquals(other.e)) return false
+        if (!modulus.contentEquals(other.modulus)) return false
+        if (!publicExponent.contentEquals(other.publicExponent)) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = n.contentHashCode()
-        result = 31 * result + e.contentHashCode()
+        var result = modulus.contentHashCode()
+        result = 31 * result + publicExponent.contentHashCode()
         return result
     }
 }
@@ -42,8 +42,8 @@ public fun RsaPublicKey(bytes: ByteArray): RsaPublicKey {
 }
 
 public suspend fun RsaPublicKey.fingerprint(): Long {
-    val n = Bytes(n)
-    val e = Bytes(e)
+    val n = Bytes(modulus)
+    val e = Bytes(publicExponent)
     val key = TLRsaPublicKey(n, e).bare
     val bytes = TL.encodeToByteArray(key)
     val sha1 = MemoryArena.of(bytes.sha1())

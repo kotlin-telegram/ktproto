@@ -9,4 +9,5 @@ dependencies {
     commonMainImplementation(libs.kotlinxCoroutines)
     commonMainImplementation(projects.libs.stdlibExtensions)
     commonMainImplementation(projects.libs.io)
+    commonMainImplementation(projects.types)
 }

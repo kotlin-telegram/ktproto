@@ -14,5 +14,6 @@ kotlin {
 
 dependencies {
     commonMainImplementation(libs.kotlinxCoroutines)
+    commonMainImplementation(libs.koTL.serialization)
     commonTestImplementation(kotlin("test"))
 }

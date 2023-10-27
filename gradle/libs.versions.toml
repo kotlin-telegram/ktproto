@@ -1,7 +1,7 @@
 [versions]
 
 kotlin = "1.9.20-Beta2"
-kotlVersion = "0.0.14"
+kotlVersion = "0.0.15"
 ktprotoVersion = "0.0.1"
 kotlinxSerialization = "1.5.0"
 kotlinxCoroutines = "1.7.3"

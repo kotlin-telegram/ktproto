@@ -5,7 +5,7 @@ public sealed interface JsPlatform {
     public data object Browser : JsPlatform
 }
 
-public val platform: JsPlatform by lazy {
+public val jsRuntime: JsPlatform by lazy {
     if (js("typeof window") === "undefined") {
         JsPlatform.Node
     } else {

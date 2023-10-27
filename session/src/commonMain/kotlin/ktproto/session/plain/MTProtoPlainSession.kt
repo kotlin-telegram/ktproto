@@ -10,6 +10,7 @@ import ktproto.io.memory.*
 import ktproto.session.MTProtoSession
 import ktproto.session.MessageIdProvider
 import ktproto.session.plain.MTProtoPlainEnvelope.DataLength
+import ktproto.stdlib.bytes.toBinaryString
 import ktproto.transport.MTProtoTransport
 
 @OngoingConnection

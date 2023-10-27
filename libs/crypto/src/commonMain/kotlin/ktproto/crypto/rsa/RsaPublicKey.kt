@@ -5,22 +5,22 @@ import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 public data class RsaPublicKey(
-    public val n: ByteArray,
-    public val e: ByteArray
+    public val modulus: ByteArray,
+    public val publicExponent: ByteArray
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is RsaPublicKey) return false
 
-        if (!n.contentEquals(other.n)) return false
-        if (!e.contentEquals(other.e)) return false
+        if (!modulus.contentEquals(other.modulus)) return false
+        if (!publicExponent.contentEquals(other.publicExponent)) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = n.contentHashCode()
-        result = 31 * result + e.contentHashCode()
+        var result = modulus.contentHashCode()
+        result = 31 * result + publicExponent.contentHashCode()
         return result
     }
 }
@@ -41,8 +41,7 @@ public fun RsaPublicKey(bytes: ByteArray): RsaPublicKey {
     val asn1 = try {
         parseAsn1Der(bytes)
     } catch (throwable: Throwable) {
-        throwable.printStackTrace()
-        error("Invalid public key. Cause: ${throwable.message}")
+        throw IllegalStateException("Invalid public key", throwable)
     }
 
     val modulus = asn1.children.orEmpty().getOrNull(index = 0)?.bytes
@@ -54,7 +53,7 @@ public fun RsaPublicKey(bytes: ByteArray): RsaPublicKey {
 
     return RsaPublicKey(
         // removing sign-byte
-        n = modulus.drop(1).toByteArray(),
-        e = publicExponent
+        modulus = modulus.drop(n = 1).toByteArray(),
+        publicExponent = publicExponent
     )
 }

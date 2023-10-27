@@ -1,14 +1,14 @@
 package ktproto.transport.exception
 
 import kotlinx.coroutines.CancellationException
+import ktproto.exception.MTProtoException
 
-public expect class IOException : Exception {
-    public constructor(message: String)
-    public constructor(cause: Throwable)
-    public constructor(message: String, cause: Throwable)
-}
+public open class IOException(
+    message: String? = null,
+    cause: Throwable? = null
+) : MTProtoException(message, cause)
 
 public fun Throwable.throwIO(): Nothing {
     if (this is CancellationException) throw this
-    throw IOException(this)
+    throw IOException(cause = this)
 }

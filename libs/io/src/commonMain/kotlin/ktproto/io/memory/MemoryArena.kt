@@ -28,6 +28,7 @@ public class MemoryArena(
         public fun of(int: Int): MemoryArena = of(int.encodeToByteArray())
         public fun of(int: UInt): MemoryArena = of(int.toInt())
         public fun of(long: Long): MemoryArena = of(long.encodeToByteArray())
+        public fun of(long: ULong): MemoryArena = of(long.toLong())
     }
 }
 

@@ -13,55 +13,57 @@ import kotlinx.coroutines.flow.flow
 import ktproto.client.MTProtoClient
 import ktproto.io.annotation.OngoingConnection
 import ktproto.session.MTProtoSession
-import ktproto.session.SessionConnector
+import ktproto.session.MTProtoSafeSession
 import ktproto.session.messageIdProvider
 import ktproto.session.plain.mtprotoPlainSession
 import ktproto.transport.MTProtoTransport
 import ktproto.transport.Transport
-import ktproto.transport.mtprotoIntermediate
+import ktproto.transport.mtprotoIntermediateConnector
 
 @OngoingConnection
 public suspend fun plainMTProtoClient(
-    transport: Transport,
     scope: CoroutineScope,
-    clock: Clock = Clock.System
+    clock: Clock = Clock.System,
+    transport: Transport.Connector,
 ): MTProtoClient {
-    val mtprotoTransport = mtprotoIntermediate(transport, scope)
-    return plainMTProtoClient(mtprotoTransport, scope, clock)
+    val mtprotoTransport = mtprotoIntermediateConnector(transport)
+    return plainMTProtoClient(scope, clock, mtprotoTransport)
 }
 
 @OngoingConnection
-public fun plainMTProtoClient(
-    transport: MTProtoTransport,
+public suspend fun plainMTProtoClient(
     scope: CoroutineScope,
-    clock: Clock = Clock.System
+    clock: Clock = Clock.System,
+    transport: MTProtoTransport.Connector
 ): MTProtoClient {
     val client = PlainMTProtoClient(transport, scope, clock)
+    client.connect()
     return client
 }
 
 @OptIn(OngoingConnection::class)
 private class PlainMTProtoClient(
-    transport: MTProtoTransport,
+    transport: MTProtoTransport.Connector,
     scope: CoroutineScope,
     clock: Clock = Clock.System
 ) : MTProtoClient {
-    private val session: SessionConnector
+    private val session: MTProtoSafeSession
 
     init {
-        val factory = SessionConnector.Factory {
+        val connector = MTProtoSession.Connector { connectorScope ->
             mtprotoPlainSession(
-                scope = scope,
-                transport = transport,
+                scope = connectorScope,
+                transport = transport.connect(connectorScope),
                 messageIdProvider = messageIdProvider(clock)
             )
         }
-        session = SessionConnector(factory, scope)
+        session = MTProtoSafeSession(connector, scope)
     }
+
+    suspend fun connect() = session.connect()
 
     override val updates: Flow<TLExpression> = flow { awaitCancellation() }
 
-    @OptIn(ExperimentalStdlibApi::class)
     override suspend fun execute(
         function: TLFunction,
         responseDescriptor: TLExpressionDescriptor

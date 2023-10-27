@@ -9,15 +9,17 @@ import ktproto.io.annotation.OngoingConnection
 import ktproto.io.input.Input
 import ktproto.io.memory.*
 import ktproto.io.output.Output
+import ktproto.stdlib.bytes.toBinaryString
 
-@OngoingConnection
-public suspend fun mtprotoIntermediate(
-    transport: Transport,
-    scope: CoroutineScope
-): MTProtoTransport {
-    val result = MTProtoIntermediate(transport)
+@OptIn(OngoingConnection::class)
+public fun mtprotoIntermediateConnector(
+    transport: Transport.Connector
+): MTProtoTransport.Connector = MTProtoTransport.Connector { scope ->
+    val result = MTProtoIntermediate(
+        transport = transport.connect(scope)
+    )
     result.launchIn(scope)
-    return result
+    result
 }
 
 
@@ -67,6 +69,7 @@ private fun Input.asMessagesFlow() = flow {
         val memoryView = memory.take(length)
         read(memoryView)
         val bytes = memoryView.toByteArray()
+        bytes.throwTransportExceptions()
         emit(MTProtoTransport.Message(bytes))
     }
 }
