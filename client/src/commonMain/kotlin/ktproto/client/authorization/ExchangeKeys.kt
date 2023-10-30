@@ -5,6 +5,7 @@ import kotl.serialization.bytes.Bytes
 import kotl.serialization.int.Int128
 import kotlinx.serialization.encodeToByteArray
 import ktproto.client.MTProtoClient
+import ktproto.client.requests.TLPQInnerData
 import ktproto.client.requests.TLPQInnerDataDC
 import ktproto.client.requests.getDHParams
 import ktproto.client.rsa.RsaPublicKey
@@ -30,7 +31,7 @@ internal suspend fun exchangeKeys(
     serverNonce: Int128,
     dc: Int
 ) {
-    println("Server Key Fingerprint: ${serverPublicKey.fingerprint().toHexString()} (Production)")
+    println("Server Key Fingerprint: ${serverPublicKey.fingerprint().toHexString()}")
     // 4)
     val newNonce = Random.nextInt128()
 
@@ -47,6 +48,7 @@ internal suspend fun exchangeKeys(
     println("p_q_inner_data_dc: $request")
 
     val data = TL.encodeToByteArray(request)
+    println(data.toHexString())
     val encryptedData = rsaPad(data, serverPublicKey)
 
     val params = client.getDHParams(

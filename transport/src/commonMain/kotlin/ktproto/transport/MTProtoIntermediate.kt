@@ -2,17 +2,15 @@ package ktproto.transport
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.*
 import ktproto.io.annotation.OngoingConnection
 import ktproto.io.input.Input
 import ktproto.io.memory.*
 import ktproto.io.output.Output
-import ktproto.stdlib.bytes.toBinaryString
+import kotlin.jvm.JvmInline
 
 @OptIn(OngoingConnection::class)
-public fun mtprotoIntermediateConnector(
+public fun mtprotoIntermediate(
     transport: Transport.Connector
 ): MTProtoTransport.Connector = MTProtoTransport.Connector { scope ->
     val result = MTProtoIntermediate(
@@ -27,11 +25,8 @@ public fun mtprotoIntermediateConnector(
 private class MTProtoIntermediate(
     private val transport: Transport
 ) : MTProtoTransport {
-    private val _incoming = Channel<MTProtoTransport.Message>()
-    override val incoming: ReceiveChannel<MTProtoTransport.Message> = _incoming
-
-    private val _outgoing = Channel<MTProtoTransport.Message>()
-    override val outgoing: SendChannel<MTProtoTransport.Message> = _outgoing
+    override val incoming = Channel<MTProtoTransport.Message>()
+    override val outgoing = Channel<MTProtoTransport.Message>()
 
     suspend fun launchIn(scope: CoroutineScope) {
         transport.output.write(INIT)
@@ -39,18 +34,18 @@ private class MTProtoIntermediate(
         transport.input
             .asMessagesFlow()
             .onCompletion { cause -> close(cause) }
-            .onEach { message -> _incoming.send(message) }
+            .onEach { message -> incoming.send(message) }
             .launchIn(scope)
 
-        _outgoing.receiveAsFlow()
+        outgoing.consumeAsFlow()
             .attachOutput(transport.output)
             .onCompletion { cause -> close(cause) }
             .launchIn(scope)
     }
 
     private fun close(cause: Throwable?) {
-        _incoming.close(cause)
-        _outgoing.close(cause)
+        incoming.close(cause)
+        outgoing.close(cause)
     }
 
     private companion object {

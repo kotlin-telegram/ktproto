@@ -2,8 +2,7 @@ name: Library Snapshot Deploy
 
 on:
   push:
-#    // for now only master will be deployed
-#    branches-ignore: [ "master" ]
+    branches-ignore: [ "master" ]
   workflow_dispatch:
 
 env:
@@ -18,6 +17,9 @@ jobs:
 
   deploy-multiplatform:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v3
       - name: Gradle Cache Setup
@@ -31,10 +33,13 @@ jobs:
           snapshot_version=$(./gradlew printVersion -q)
           echo "snapshot_version=$snapshot_version" >> $GITHUB_ENV
       - name: Publish ${{ env.snapshot_version }}
-        run: ./gradlew publishKotlinMultiplatformPublicationToKtprotoRepository
+        run: ./gradlew publishKotlinMultiplatformPublicationToGitHubRepository
 
   deploy-jvm:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v3
       - name: Gradle Cache Setup
@@ -48,10 +53,13 @@ jobs:
           snapshot_version=$(./gradlew printVersion -q)
           echo "snapshot_version=$snapshot_version" >> $GITHUB_ENV
       - name: Publish ${{ env.snapshot_version }}
-        run: ./gradlew publishJvmPublicationToKtprotoRepository
+        run: ./gradlew publishJvmPublicationToGitHubRepository
 
   deploy-js:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v3
       - name: Gradle Cache Setup
@@ -65,10 +73,13 @@ jobs:
           snapshot_version=$(./gradlew printVersion -q)
           echo "snapshot_version=$snapshot_version" >> $GITHUB_ENV
       - name: Publish ${{ env.snapshot_version }}
-        run: ./gradlew publishJsPublicationToKtprotoRepository
+        run: ./gradlew publishJsPublicationToGitHubRepository
 
   deploy-konan:
     runs-on: macos-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v3
       - name: Gradle Cache Setup
@@ -88,6 +99,6 @@ jobs:
           echo "snapshot_version=$snapshot_version" >> $GITHUB_ENV
       - name: Publish ${{ env.snapshot_version }}
         run: |
-          ./gradlew publishIosX64PublicationToKtprotoRepository \
-                    publishIosSimulatorArm64PublicationToKtprotoRepository \
-                    publishIosArm64PublicationToKtprotoRepository
+          ./gradlew publishIosX64PublicationToGitHubRepository \
+                    publishIosSimulatorArm64PublicationToGitHubRepository \
+                    publishIosArm64PublicationToGitHubRepository

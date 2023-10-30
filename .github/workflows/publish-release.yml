@@ -1,0 +1,134 @@
+name: Library Release Deploy
+
+on:
+  push:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+env:
+  GITHUB_USERNAME: ${{ github.actor }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+
+  deploy-multiplatform:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    outputs:
+      release_version: ${{ steps.output_version.outputs.release_version }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 11
+      - name: Gradle Cache Setup
+        uses: gradle/gradle-build-action@v2
+      - name: Gradle Sync
+        run: ./gradlew
+      - name: Add Version to Env
+        run: |
+          release_version=$(./gradlew printVersion -q)
+          echo "release_version=$release_version" >> $GITHUB_ENV
+      - name: Publish ${{ env.release_version }}
+        run: ./gradlew publishKotlinMultiplatformPublicationToGitHubRepository
+      - name: Add Sdk Version to Output
+        id: output_version
+        run: echo "release_version=${{ env.release_version }}" >> $GITHUB_OUTPUT
+
+  deploy-jvm:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 11
+      - name: Gradle Cache Setup
+        uses: gradle/gradle-build-action@v2
+      - name: Gradle Sync
+        run: ./gradlew
+      - name: Add Version to Env
+        run: |
+          release_version=$(./gradlew printVersion -q)
+          echo "release_version=$release_version" >> $GITHUB_ENV
+      - name: Publish ${{ env.release_version }}
+        run: ./gradlew publishJvmPublicationToGitHubRepository
+
+  deploy-js:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 11
+      - name: Gradle Cache Setup
+        uses: gradle/gradle-build-action@v2
+      - name: Gradle Sync
+        run: ./gradlew
+      - name: Add Version to Env
+        run: |
+          release_version=$(./gradlew printVersion -q)
+          echo "release_version=$release_version" >> $GITHUB_ENV
+      - name: Publish ${{ env.release_version }}
+        run: ./gradlew publishJsPublicationToGitHubRepository
+
+  deploy-konan:
+    runs-on: macos-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 11
+      - name: Gradle Cache Setup
+        uses: gradle/gradle-build-action@v2
+      - name: Konan Cache Setup
+        uses: actions/cache@v3
+        with:
+          path: ~/.konan
+          key: konan-cache
+      - name: Gradle Sync
+        run: ./gradlew
+      - name: Add Version to Env
+        run: |
+          release_version=$(./gradlew printVersion -q)
+          echo "release_version=$release_version" >> $GITHUB_ENV
+      - name: Publish ${{ env.release_version }}
+        run: |
+          ./gradlew publishIosX64PublicationToGitHubRepository \
+                    publishIosSimulatorArm64PublicationToGitHubRepository \
+                    publishIosArm64PublicationToGitHubRepository
+
+  create-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    needs:
+      - deploy-multiplatform
+      - deploy-jvm
+      - deploy-js
+      - deploy-konan
+    steps:
+      - name: Create Release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ needs.deploy-multiplatform.outputs.release_version }}
+          release_name: Release ${{ needs.deploy-multiplatform.outputs.release_version }}

@@ -7,7 +7,7 @@ group = "me.y9san9.ktproto"
 publishing {
     repositories {
         maven {
-            name = "ktproto"
+            name = "GitHub"
             url = uri("https://maven.pkg.github.com/kotlin-telegram/ktproto")
             credentials {
                 username = System.getenv("GITHUB_USERNAME")

@@ -7,6 +7,7 @@ import kotlin.random.nextULong
 public object PollardRhoBrent {
     // Code was rewritten to Kotlin from CPP:
     // https://github.com/tdlib/td/blob/master/tdutils/td/utils/crypto.cpp#L103
+
     public fun factorize(pq: ULong): Pair<ULong, ULong> {
         if (pq and 1uL == 0uL) {
             return 2uL to pq / 2uL

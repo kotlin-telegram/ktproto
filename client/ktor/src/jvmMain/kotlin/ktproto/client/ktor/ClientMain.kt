@@ -54,7 +54,7 @@ private suspend fun main(): Unit = weakCoroutineScope {
     val client = plainMTProtoClient(
         scope = this,
         transport = ktorSocketTransport(
-            hostname = "149.154.167.51",
+            hostname = "149.154.167.50",
             port = 443
         )
     )

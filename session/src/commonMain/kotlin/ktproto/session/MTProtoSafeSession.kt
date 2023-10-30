@@ -1,12 +1,13 @@
 package ktproto.session
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import ktproto.exception.MTProtoException
 import ktproto.io.annotation.OngoingConnection
-import ktproto.transport.exception.IOException
+import ktproto.transport.exception.throwIO
 
 
 /**
@@ -19,6 +20,7 @@ public class MTProtoSafeSession(
     private val connector: MTProtoSession.Connector,
     private val scope: CoroutineScope
 ) {
+    private val requestsScope = scope + SupervisorJob()
     private val mutex = Mutex()
 
     private var session: MTProtoSession? = null
@@ -28,6 +30,7 @@ public class MTProtoSafeSession(
     // todo: connection not before trying to make request
     //  but on a separate background coroutine that is constantly
     //  monitoring job state
+    // todo v2: or maybe not
     @OptIn(DelicateCoroutinesApi::class)
     private suspend fun ensureSessionActive(): MTProtoSession = mutex.withLock {
         var session = session
@@ -38,7 +41,7 @@ public class MTProtoSafeSession(
             session.outgoing.isClosedForSend
         ) {
             lastScope.cancel()
-            lastScope = scope + SupervisorJob()
+            lastScope = scope + Job()
             session = connector.connect(lastScope)
             collectMessages(session)
         }
@@ -69,14 +72,19 @@ public class MTProtoSafeSession(
     public suspend fun <T : Any> sendRequest(
         request: MTProtoSession.Message,
         transform: (MTProtoSession.Message) -> T?
-    ): T = coroutineScope {
+    ): T {
         val session = ensureSessionActive()
-        val response = async(start = CoroutineStart.UNDISPATCHED) {
+        val response = requestsScope.async(start = CoroutineStart.UNDISPATCHED) {
             messages
-                .mapNotNull { transform(it.getOrThrow()) }
+                .mapNotNull { result ->
+                    result.map { message ->
+                        transform(message) ?: return@mapNotNull null
+                    }
+                }
                 .first()
         }
         session.outgoing.send(request)
-        response.await()
+        val result = response.await().getOrElse { throwable -> throwable.throwIO() }
+        return result
     }
 }

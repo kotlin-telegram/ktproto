@@ -18,19 +18,19 @@ import ktproto.session.messageIdProvider
 import ktproto.session.plain.mtprotoPlainSession
 import ktproto.transport.MTProtoTransport
 import ktproto.transport.Transport
-import ktproto.transport.mtprotoIntermediateConnector
+import ktproto.transport.mtprotoIntermediate
 
-@OngoingConnection
+@OptIn(OngoingConnection::class)
 public suspend fun plainMTProtoClient(
     scope: CoroutineScope,
     clock: Clock = Clock.System,
     transport: Transport.Connector,
 ): MTProtoClient {
-    val mtprotoTransport = mtprotoIntermediateConnector(transport)
+    val mtprotoTransport = mtprotoIntermediate(transport)
     return plainMTProtoClient(scope, clock, mtprotoTransport)
 }
 
-@OngoingConnection
+@OptIn(OngoingConnection::class)
 public suspend fun plainMTProtoClient(
     scope: CoroutineScope,
     clock: Clock = Clock.System,

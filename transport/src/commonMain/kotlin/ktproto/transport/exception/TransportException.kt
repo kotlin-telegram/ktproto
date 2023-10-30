@@ -1,3 +1,9 @@
 package ktproto.transport.exception
 
-public data class TransportException(val code: Int) : IOException()
+public class TransportException(
+    public val code: Int,
+    cause: Throwable? = null
+) : IOException(
+    message = "Transport was closed with code $code",
+    cause = cause
+)

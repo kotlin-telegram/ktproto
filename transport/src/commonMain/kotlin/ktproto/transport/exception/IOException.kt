@@ -10,5 +10,6 @@ public open class IOException(
 
 public fun Throwable.throwIO(): Nothing {
     if (this is CancellationException) throw this
-    throw IOException(cause = this)
+    if (this is TransportException) throw TransportException(code, this)
+    throw IOException(message, cause = this)
 }

@@ -7,9 +7,9 @@ version = libs.versions.ktprotoVersion.get()
 
 dependencies {
     commonMainApi(projects.session)
+    commonMainApi(libs.koTL.serialization)
 
     commonMainImplementation(projects.libs.crypto)
-    commonMainImplementation(libs.koTL.serialization)
     commonMainImplementation(libs.kotlinxSerialization)
     commonMainImplementation(libs.kotlinxCoroutines)
     commonMainImplementation(projects.libs.stdlibExtensions)

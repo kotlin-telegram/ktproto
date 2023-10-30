@@ -23,7 +23,11 @@ kotlin {
 
     explicitApi()
 
-    compilerOptions {
-        freeCompilerArgs.add("-Xexpect-actual-classes")
+    targets.all {
+        compilations.all {
+            compilerOptions.configure {
+                freeCompilerArgs.add("-Xexpect-actual-classes")
+            }
+        }
     }
 }
