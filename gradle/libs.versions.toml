@@ -1,8 +1,8 @@
 [versions]
 
-kotlin = "1.9.20-Beta2"
+kotlin = "1.9.20-RC2"
 kotlVersion = "0.0.15"
-ktprotoVersion = "0.0.1"
+ktprotoVersion = "0.0.2"
 kotlinxSerialization = "1.5.0"
 kotlinxCoroutines = "1.7.3"
 ktor = "2.3.4"
